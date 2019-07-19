@@ -11,14 +11,14 @@ class PostController extends Controller
 {
 
     protected $postRepository;
-    protected $perPage = 5;
+    protected $perPage = 8;
 
     /**
      * PostController constructor.
      * @param $postRepository
      */
     public function __construct(PostRepository $postRepository){
-        $this->middleware('auth:api')->except(['index', 'show']);
+        $this->middleware('auth:api')->except(['index', 'show', 'totalCommentsPost']);
         $this->postRepository = $postRepository;
     }
 
@@ -68,9 +68,11 @@ class PostController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function show($id){
+        $this->postRepository->incrementViews($id);
         $post = $this->postRepository->show($id);
-        if ($post)
+        if ($post){
             return response()->json(['data' => $post]);
+        }
         return response()->json(['error', 'Sorry, post has not been found'], 401);
     }
 
@@ -116,5 +118,10 @@ class PostController extends Controller
 
         if ($validator->fails()) return response()->json(['error'=>$validator->errors()], 401);
         return response()->json(['data' => $this->postRepository->avgEvaluation($postId)]);
+    }
+
+    public function totalCommentsPost($postId){
+        $nbr = $this->postRepository->totalCommentsPost($postId);
+        return response()->json(['data' => $nbr]);
     }
 }

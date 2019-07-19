@@ -19,6 +19,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
 Route::apiResource('/posts', 'PostController')->except(['create', 'edit']);
 Route::get('/my_posts', 'PostController@myPosts');
+Route::get('/posts/total_comments/{n}', 'PostController@totalCommentsPost')->where('n','[0-9]+');
 Route::get('/posts/avg_evaluation/{n}', 'PostController@avgEvaluation')->where('n','[0-9]+');
 
 Route::get('/favorites', 'FavoritesController@index');

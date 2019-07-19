@@ -9,7 +9,7 @@ use Validator;
 
 class FavoritesController extends Controller {
 
-    protected $perPage = 5;
+    protected $perPage = 8;
     protected $favoriteRepository;
 
     /**

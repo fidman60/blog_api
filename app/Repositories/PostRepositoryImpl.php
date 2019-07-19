@@ -24,7 +24,8 @@ class PostRepositoryImpl implements PostRepository {
     }
 
     function listPagination($n){
-        return $this->post->orderBy('created_at','desc')->with('user')->paginate($n)->all();
+        return DB::table('posts')->select('posts.*',DB::raw('(SELECT COUNT(comments.id) FROM comments WHERE comments.post_id = posts.id) as total_comments'))->orderBy('posts.id','asc')->paginate($n)->toArray();
+        //return $this->post->orderBy('created_at','desc')->with('user','comments')->paginate($n)->all();
     }
 
     function store($post, $userId){
@@ -69,6 +70,14 @@ class PostRepositoryImpl implements PostRepository {
 
     function avgEvaluation($postId){
         return (float)DB::table('comments')->where('post_id', $postId)->avg('evaluation');
+    }
+
+    function incrementViews($postId){
+        return DB::table('posts')->where('id',$postId)->increment('total_views');
+    }
+
+    function totalCommentsPost($postId){
+        return DB::table('comments')->where('post_id',1)->count();
     }
 
 }

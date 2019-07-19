@@ -25,4 +25,8 @@ interface PostRepository {
 
     function avgEvaluation($postId);
 
+    function incrementViews($postId);
+
+    function totalCommentsPost($postId);
+
 }
