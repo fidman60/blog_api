@@ -14,6 +14,8 @@ use App\Repositories\ResponseRepository;
 use App\Repositories\ResponseRepositoryImpl;
 use App\Repositories\UserRepository;
 use App\Repositories\UserRepositoryImpl;
+use App\Services\SocialUserResolver;
+use Coderello\SocialGrant\Resolvers\SocialUserResolverInterface;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -29,9 +31,9 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(FavoriteRepository::class, FavoriteRepositoryImpl::class);
         $this->app->bind(UserRepository::class, UserRepositoryImpl::class);
         $this->app->bind(CommentRepository::class, CommentRepositoryImpl::class);
-        $this->app->bind(CommentRepository::class, CommentRepositoryImpl::class);
         $this->app->bind(ResponseRepository::class, ResponseRepositoryImpl::class);
         $this->app->bind(ReactionRepository::class, ReactionRepositoryImpl::class);
+        $this->app->bind(SocialUserResolverInterface::class, SocialUserResolver::class);
     }
 
     /**

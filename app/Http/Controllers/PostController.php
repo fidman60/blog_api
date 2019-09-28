@@ -2,24 +2,28 @@
 
 namespace App\Http\Controllers;
 
+use App\Repositories\CommentRepository;
 use App\Repositories\PostRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use function Symfony\Component\Debug\Tests\testHeader;
 use Validator;
 
 class PostController extends Controller
 {
 
     protected $postRepository;
+    protected $commentRepository;
     protected $perPage = 8;
 
     /**
      * PostController constructor.
      * @param $postRepository
      */
-    public function __construct(PostRepository $postRepository){
-        $this->middleware('auth:api')->except(['index', 'show', 'totalCommentsPost']);
+    public function __construct(PostRepository $postRepository, CommentRepository $commentRepository){
+        $this->middleware('auth:api')->except(['index', 'totalCommentsPost']);
         $this->postRepository = $postRepository;
+        $this->commentRepository = $commentRepository;
     }
 
     /**
@@ -69,11 +73,10 @@ class PostController extends Controller
      */
     public function show($id){
         $this->postRepository->incrementViews($id);
-        $post = $this->postRepository->show($id);
-        if ($post){
-            return response()->json(['data' => $post]);
-        }
-        return response()->json(['error', 'Sorry, post has not been found'], 401);
+        $post = $this->postRepository->getPost($id);
+        $comments = $this->commentRepository->postComments($id, 5, Auth::id());
+        $wasCommented = (boolean)$this->commentRepository->hasCommented($id, Auth::id())->hasCommented;
+        return response()->json(['post' => $post, 'comments' => $comments, 'wasCommented' => $wasCommented], 200);
     }
 
     /**
@@ -123,5 +126,22 @@ class PostController extends Controller
     public function totalCommentsPost($postId){
         $nbr = $this->postRepository->totalCommentsPost($postId);
         return response()->json(['data' => $nbr]);
+    }
+
+    public function getPostsByIdList(Request $request){
+        $validator = Validator::make($request->all(), [
+            'posts_id' => 'required|array|max:'.$this->perPage,
+            "posts_id.*" => 'required|integer|distinct'
+        ]);
+
+        if ($validator->fails()) return response()->json(['error'=>$validator->errors()], 401);
+
+        return response()->json($this->postRepository->getPostsById($request->get('posts_id')));
+    }
+
+    public function searchPosts(Request $request){
+        $data = $this->postRepository->searchPosts($request->input('text'));
+
+        return response()->json($data);
     }
 }

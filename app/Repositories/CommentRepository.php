@@ -11,7 +11,7 @@ namespace App\Repositories;
 
 interface CommentRepository {
 
-    function postComments($postId, $n);
+    function postComments($postId, $n, $user_id);
 
     function storeComment($data, $userId);
 
@@ -22,5 +22,7 @@ interface CommentRepository {
     function countPositiveReactions($commentId);
 
     function countNegativeReactions($commentId);
+
+    function hasCommented($postId, $userId);
 
 }

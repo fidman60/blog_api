@@ -129,8 +129,8 @@ return [
     */
 
     'custom' => [
-        'attribute-name' => [
-            'rule-name' => 'custom-message',
+        'post_id' => [
+            'not_exists' => 'You have already commented this post',
         ],
     ],
 

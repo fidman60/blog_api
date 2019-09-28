@@ -21,6 +21,7 @@ class ReactionController extends Controller {
     }
 
     public function store(Request $request){
+
         $validator = Validator::make($request->all(), [
             'reaction' => 'required|boolean',
             'comment_id' => 'required|integer|exists:comments,id'
@@ -31,7 +32,7 @@ class ReactionController extends Controller {
         $success = $this->reactionRepository->store($request->all(), Auth::id());
 
         if ($success)
-            return response()->json(['success' => $success]);
+            return response()->json($this->reactionRepository->calculateReactions($request->get('comment_id')));
         return response()->json(['error' => 'Sorry, something went wrong'], 401);
     }
 

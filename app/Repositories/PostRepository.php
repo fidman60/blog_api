@@ -19,7 +19,7 @@ interface PostRepository {
 
     function destroy($id, $userId);
 
-    function show($id);
+    function getPost($id);
 
     function myPosts($userId, $n);
 
@@ -28,5 +28,9 @@ interface PostRepository {
     function incrementViews($postId);
 
     function totalCommentsPost($postId);
+
+    function getPostsById(array $idList);
+
+    function searchPosts($text);
 
 }

@@ -11,6 +11,7 @@ namespace App\Repositories;
 use App\Model\Comment;
 use App\Model\Reaction;
 use App\Model\User;
+use DB;
 
 
 class ReactionRepositoryImpl implements ReactionRepository {
@@ -26,14 +27,19 @@ class ReactionRepositoryImpl implements ReactionRepository {
     }
 
     function store($data, $userId){
-        $user = User::find($userId);
-        $comment = Comment::find($data['comment_id']);
-        if (!$user || !$comment) return false;
 
-        $this->reaction->reaction = $data['reaction'];
-        $this->reaction->user()->associate($user);
-        $this->reaction->comment()->associate($comment);
-        return $this->reaction->save();
+        $reaction = Reaction::firstOrNew(['user_id' => $userId, 'comment_id' => $data['comment_id']]);
+        $reaction->reaction = $data['reaction'];
+
+        return $reaction->save();
+    }
+
+    function calculateReactions($comment_id) {
+        return DB::table('reactions')
+            ->select(
+                DB::raw('(SELECT COUNT(reactions.id) FROM reactions WHERE reactions.comment_id = '.$comment_id.' and reaction = 1) as total_likes'),
+                DB::raw('(SELECT COUNT(reactions.id) FROM reactions WHERE reactions.comment_id = '.$comment_id.' and reaction = 0) as total_dislikes')
+            )->first();
     }
 
 }

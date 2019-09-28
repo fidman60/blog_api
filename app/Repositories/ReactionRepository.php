@@ -13,4 +13,6 @@ interface ReactionRepository {
 
     function store($data, $userId);
 
+    function calculateReactions($comment_id);
+
 }

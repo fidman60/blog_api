@@ -6,6 +6,7 @@ use App\Repositories\CommentRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Validator;
+use DB;
 
 class CommentController extends Controller {
 
@@ -17,31 +18,39 @@ class CommentController extends Controller {
      * @param $commentRepository
      */
     public function __construct(CommentRepository $commentRepository){
-        $this->middleware('auth:api')->only('store', 'destroy');
+        $this->middleware('auth:api')->only('store', 'destroy', 'getPostComments');
         $this->commentRepository = $commentRepository;
     }
 
     public function getPostComments($postId){
-        $data = $this->commentRepository->postComments($postId, $this->perPage);
+        $data = $this->commentRepository->postComments($postId, $this->perPage, Auth::id());
 
-        if(is_array($data))
-            return response()->json(['data' => $data], 200);
+        if($data)
+            return response()->json($data, 200);
         return response()->json(['error'=>'Sorry, something went wrong'], 401);
     }
 
     public function store(Request $request){
+        Validator::extend('not_exists', function($attribute, $value, $parameters)
+        {
+            return DB::table("comments")
+                ->where("user_id", '=', Auth::id())
+                ->where("post_id", '=', $parameters[0])
+                ->count() < 1;
+        });
+
         $validator = Validator::make($request->all(), [
-            'comment' => 'required|string|min:10|max:100',
+            'comment' => 'required|string|min:5|max:300',
             'evaluation' => 'required|integer|min:1|max:5',
-            'post_id' => 'required|integer|exists:posts,id',
+            'post_id' => 'required|integer|exists:posts,id|not_exists:'.$request->get('post_id'),
         ]);
 
         if ($validator->fails()) return response()->json(['error'=>$validator->errors()], 401);
 
-        $success = $this->commentRepository->storeComment($request->all(), Auth::id());
+        $comment = $this->commentRepository->storeComment($request->all(), Auth::id());
 
-        if($success)
-            return response()->json(['success' => $success], 200);
+        if($comment)
+            return response()->json(array_merge($comment->getAttributes(),['fname' => Auth::user()->fname, 'lname' => Auth::user()->lname]), 200);
         return response()->json(['error'=>'Sorry, something went wrong'], 401);
     }
 

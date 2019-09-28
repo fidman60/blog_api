@@ -17,7 +17,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'fname', 'lname', 'city', 'age', 'email', 'password','country_id'
+        'fname', 'lname', 'gender', 'birth_date', 'email', 'password','country_id'
     ];
 
     /**
@@ -44,5 +44,9 @@ class User extends Authenticatable
 
     public function comments(){
         return $this->hasMany(Comment::class);
+    }
+
+    public function linkedSocialAccounts(){
+        return $this->hasMany(LinkedSocialAccount::class);
     }
 }

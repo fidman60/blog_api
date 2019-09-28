@@ -26,12 +26,32 @@ class CommentRepositoryImpl implements CommentRepository {
         $this->comment = $comment;
     }
 
-    function postComments($postId, $n){
-        return $this->comment
+    function postComments($postId, $n, $user_id){
+        /*return $this->comment
             ->orderBy('created_at','desc')
             ->with('user')
             ->where('post_id', $postId)
-            ->paginate($n)->all();
+            ->paginate($n)->all();*/
+
+        return DB::table('comments')
+            ->join('users','users.id','=','comments.user_id')
+            ->select(
+                'users.fname','users.lname', 'users.image as user_image','comments.*',
+                DB::raw('(SELECT COUNT(responses.id) FROM responses WHERE responses.comment_id = comments.id) as total_responses'),
+                DB::raw('(SELECT COUNT(reactions.id) FROM reactions WHERE reactions.comment_id = comments.id and reaction = 1) as total_likes'),
+                DB::raw('(SELECT COUNT(reactions.id) FROM reactions WHERE reactions.comment_id = comments.id and reaction = 0) as total_dislikes'),
+                DB::raw('(SELECT COUNT(reactions.id) FROM reactions WHERE reactions.comment_id = comments.id and reactions.user_id = '.$user_id.') as was_reacted'),
+                DB::raw('(SELECT reaction FROM reactions WHERE reactions.comment_id = comments.id and reactions.user_id = '.$user_id.') as reaction')
+            )
+            ->where('comments.post_id',$postId)
+            ->orderBy('comments.created_at','desc')->paginate($n);
+    }
+
+    function hasCommented($postId, $userId){
+        return DB::table('comments')
+            ->select(DB::raw('count(*) as hasCommented'))
+            ->where('user_id',$userId)->where('post_id',$postId)
+            ->first();
     }
 
     function storeComment($data, $userId){
@@ -45,7 +65,8 @@ class CommentRepositoryImpl implements CommentRepository {
         $comment->post()->associate($post);
         $comment->user()->associate($user);
 
-        return $comment->save();
+        if($comment->save()) return $comment;
+        return false;
     }
 
     function destroy($commentId, $userId){

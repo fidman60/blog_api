@@ -24,7 +24,7 @@ class PostRepositoryImpl implements PostRepository {
     }
 
     function listPagination($n){
-        return DB::table('posts')->select('posts.*',DB::raw('(SELECT COUNT(comments.id) FROM comments WHERE comments.post_id = posts.id) as total_comments'))->orderBy('posts.id','asc')->paginate($n)->toArray();
+        return DB::table('posts')->select('posts.*',DB::raw('(SELECT COUNT(comments.id) FROM comments WHERE comments.post_id = posts.id) as total_comments'))->orderBy('posts.id','desc')->paginate($n)->toArray();
         //return $this->post->orderBy('created_at','desc')->with('user','comments')->paginate($n)->all();
     }
 
@@ -58,8 +58,11 @@ class PostRepositoryImpl implements PostRepository {
         return $post->delete();
     }
 
-    function show($id){
-        return Post::find($id);
+    function getPost($postId){
+        return DB::table('posts')
+            ->join('users','users.id','=','posts.user_id')
+            ->select('users.fname','users.lname','users.image as user_image','posts.*', DB::raw("(SELECT COUNT(favorites.id) FROM favorites WHERE favorites.post_id = posts.id) as in_favorite"), DB::raw('(SELECT COUNT(comments.id) FROM comments WHERE comments.post_id = posts.id) as total_comments'), DB::raw('(SELECT AVG(comments.evaluation) FROM comments WHERE comments.post_id = posts.id) as rating'))
+            ->where('posts.id',$postId)->first();
     }
 
     function myPosts($userId, $n){
@@ -79,5 +82,17 @@ class PostRepositoryImpl implements PostRepository {
     function totalCommentsPost($postId){
         return DB::table('comments')->where('post_id',1)->count();
     }
+
+    function getPostsById(array $idList){
+        return DB::table('posts')->select('posts.*',DB::raw("(SELECT COUNT(favorites.id) FROM favorites WHERE favorites.post_id = posts.id) as in_favorite"),DB::raw('(SELECT COUNT(comments.id) FROM comments WHERE comments.post_id = posts.id) as total_comments'))
+            ->orderBy('posts.id','desc')->whereIn('id',$idList)->get();
+    }
+
+    function searchPosts($text){
+        return DB::table('posts')
+            ->select('posts.*',DB::raw('(SELECT COUNT(comments.id) FROM comments WHERE comments.post_id = posts.id) as total_comments'))
+            ->orderBy('posts.id','desc')->where('title','LIKE','%'.$text.'%')->get();
+    }
+
 
 }

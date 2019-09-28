@@ -12,6 +12,7 @@ namespace App\Repositories;
 use App\Model\Comment;
 use App\Model\Response;
 use App\Model\User;
+use DB;
 
 class ResponseRepositoryImpl implements ResponseRepository {
 
@@ -36,7 +37,11 @@ class ResponseRepositoryImpl implements ResponseRepository {
     }
 
     function getCommentResponses($commentId, $n){
-        return $this->response->where('comment_id',$commentId)->with('user')->paginate($n)->all();
+        return DB::table('responses')
+            ->join('users','users.id','=','responses.user_id')
+            ->select('responses.*','users.fname','users.lname','users.image')
+            ->where('responses.comment_id',$commentId)
+            ->paginate($n);
     }
 
 }

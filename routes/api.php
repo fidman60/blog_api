@@ -21,16 +21,17 @@ Route::apiResource('/posts', 'PostController')->except(['create', 'edit']);
 Route::get('/my_posts', 'PostController@myPosts');
 Route::get('/posts/total_comments/{n}', 'PostController@totalCommentsPost')->where('n','[0-9]+');
 Route::get('/posts/avg_evaluation/{n}', 'PostController@avgEvaluation')->where('n','[0-9]+');
+Route::post('/posts/list_id','PostController@getPostsByIdList');
+Route::get('/search/posts','PostController@searchPosts');
 
 Route::get('/favorites', 'FavoritesController@index');
 Route::delete('/favorites/delete/{n}', 'FavoritesController@delete')->where('n','[0-9]+');
 Route::post('/favorites/add', 'FavoritesController@add');
 
-Route::get('/users', 'UserController@get');
-
 Route::post('/login', 'UserController@login');
 Route::post('/register', 'UserController@register');
-Route::post('/user', 'UserController@get');
+Route::get('/user', 'UserController@get');
+Route::post('/user/image', 'UserController@uploadImage');
 
 Route::get('/posts/{n}/comments', 'CommentController@getPostComments');
 Route::post('/posts/comments', 'CommentController@store');
